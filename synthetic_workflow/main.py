@@ -1,9 +1,17 @@
 import argparse
 import sys
 
-from .lib.temperature import make_annual_deviations
+from .lib.temperature import (
+    make_annual_deviations,
+    write_deviations_as_netcdf
+)
+
 from .lib.solver import gauss_newton_fd
-from .lib.population import generate_population_series
+from .lib.population import (
+    load_deviations,
+    generate_population_series,
+    write_populations_as_netcdf
+)
 from .lib.cmip import retrieve_datasets
 
 import matplotlib.pyplot as plt
@@ -75,12 +83,19 @@ def handle_args(args):
 
     if args.retrieve_data:
         retrieve_datasets()
+        sys.exit(0)
 
     if args.make_deviations:
         annual_deviations = make_annual_deviations()
+        write_deviations_as_netcdf(annual_deviations)
+        sys.exit(0)
 
     if args.make_population:
+        annual_deviations = load_deviations()
         pop = generate_population_series(annual_deviations)
+        write_populations_as_netcdf(pop)
+        sys.exit(0)
+
 
     if args.fit_capacities:
         params = np.array([1.0, 0.5])

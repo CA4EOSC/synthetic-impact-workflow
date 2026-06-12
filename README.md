@@ -39,7 +39,8 @@ values used to generate the population data.)
 4. A linear least-squares regression is used to identify any relationship between
 (i) the series of temperature deviations and (ii) the series of annual carrying
 capacities. This attempts to quantify the association between variations in mean
-temperature and changes in environmental carrying capacity for te species in question.
+temperature and changes in environmental carrying capacity for the species in
+question.
 
 5. Visualisations and a statistical analysis of the above result may be produced.
 

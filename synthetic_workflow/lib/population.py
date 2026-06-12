@@ -1,5 +1,6 @@
 import math
 
+import netCDF4 as nc
 import numpy as np
 
 
@@ -67,3 +68,27 @@ def generate_population_series(annual_deviations):
         prev_seasonal_min = p[-1]
 
     return pop
+
+
+def write_populations_as_netcdf(pop, filename="populations.nc"):
+    ds = nc.Dataset(filename, 'w', diskless=True, persist=True)
+    dim_name = "Number"
+    var_name = "Population"
+    ds.createDimension(dim_name, None)
+    ds.createVariable(var_name, np.float64, dim_name)
+    ds.variables[var_name][:] = np.ravel(pop)
+
+    ds.close()  # Persists dataset on close
+
+
+def load_deviations(filename="deviations.nc"):
+    ds = nc.Dataset(filename, 'r')
+    return ds["Degrees Deviation"][:]
+
+
+if __name__ == "__main__":
+    devs = load_deviations()
+    breakpoint()
+    #devs = np.random.uniform(0, 1, 36)
+    pop = generate_population_series(devs)
+    write_populations_as_netcdf(pop)

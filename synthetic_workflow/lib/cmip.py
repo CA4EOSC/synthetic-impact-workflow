@@ -1,5 +1,6 @@
 import os
 import sys
+import zipfile
 
 import cdsapi
 
@@ -52,6 +53,7 @@ def retrieve_datasets():
 
     for subset in (baseline, sample):
         client.retrieve(subset["dataset"], subset["request"]).download(os.path.join(data_dir, subset["filename"]))
+        unzip_dataset(os.path.join(data_dir, subset["filename"]))
 
 
 def has_local_datasets():
@@ -59,6 +61,12 @@ def has_local_datasets():
         if not (os.path.exists(subset["filename"]) or os.path.exists(subset["ncfile"])):
             return False
     return True
+
+
+def unzip_dataset(zfname, path=data_dir):
+    # NB This will overwrite provenance.json and provenance.png
+    with zipfile.ZipFile(zfname, 'r') as zf:
+        zf.extractall(path=path)
 
 
 if __name__ == "__main__":
