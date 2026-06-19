@@ -1,4 +1,7 @@
+import netCDF4 as nc
 import numpy as np
+
+from synthetic_workflow import config
 
 
 def logistic_fit(t, K, r):
@@ -61,3 +64,32 @@ def gauss_newton_fd(t, y, params, max_iter=200, tol=1e-6, delta=1e-5):
             break
 
     return params
+
+
+def write_capacity_fits(rx, ry, filename=config.capacity_fits_file):
+    ds = nc.Dataset(filename, 'w', diskless=True, persist=True)
+    dev_dim_name = "Temperature"
+    dev_var_name = "Degrees Deviation"
+    cap_dim_name = "Population"
+    cap_var_name = "Normalised Capacity"
+
+    ds.createDimension(dev_dim_name, None)
+    ds.createVariable(dev_var_name, np.float64, dev_dim_name)
+    ds.variables[dev_var_name][:] = rx
+
+    ds.createDimension(cap_dim_name, None)
+    ds.createVariable(cap_var_name, np.float64, cap_dim_name)
+    ds.variables[cap_var_name][:] = ry
+
+    ds.close()  # Persists dataset on close
+
+
+def load_capacity_fits(filename=config.capacity_fits_file):
+    ds = nc.Dataset(filename, 'r')
+    rx = ds["Degrees Deviation"][:]
+    ry = ds["Normalised Capacity"][:]
+
+    ds.close()
+    return rx, ry
+
+

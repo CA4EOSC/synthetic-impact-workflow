@@ -2,6 +2,8 @@ import os
 import sys
 import zipfile
 
+from synthetic_workflow import config
+
 import cdsapi
 
 
@@ -11,13 +13,12 @@ base_end = 1914
 sample_start = 1950
 sample_end = 2104
 
-data_dir = "data"
 
 baseline = {
-   "filename": "cmip6_baseline.zip",
-   "ncfile": "tas_Amon_HadGEM3-GC31-MM_historical_r1i1p1f3_gn_18500116-19141216.nc",
-   "dataset": "projections-cmip6",
-   "request": {
+    "filename": "cmip6_baseline.zip",
+    "ncfile": config.cmip6_datasets["baseline"],
+    "dataset": "projections-cmip6",
+    "request": {
         "temporal_resolution": "monthly",
         "experiment": "historical",
         "variable": "near_surface_air_temperature",
@@ -30,7 +31,7 @@ baseline = {
 
 sample = {
     "filename": "cmip6_sample.zip",
-    "ncfile": "tas_Amon_HadGEM3-GC31-MM_historical_r1i1p1f3_gn_19500116-20141216.nc",
+    "ncfile": config.cmip6_datasets["observation"],
     "dataset": "projections-cmip6",
     "request": {
         "temporal_resolution": "monthly",
@@ -52,8 +53,8 @@ def retrieve_datasets():
     client = cdsapi.Client()
 
     for subset in (baseline, sample):
-        client.retrieve(subset["dataset"], subset["request"]).download(os.path.join(data_dir, subset["filename"]))
-        unzip_dataset(os.path.join(data_dir, subset["filename"]))
+        client.retrieve(subset["dataset"], subset["request"]).download(os.path.join(config.data_dir, subset["filename"]))
+        unzip_dataset(os.path.join(config.data_dir, subset["filename"]))
 
 
 def has_local_datasets():
@@ -63,7 +64,7 @@ def has_local_datasets():
     return True
 
 
-def unzip_dataset(zfname, path=data_dir):
+def unzip_dataset(zfname, path=config.data_dir):
     # NB This will overwrite provenance.json and provenance.png
     with zipfile.ZipFile(zfname, 'r') as zf:
         zf.extractall(path=path)

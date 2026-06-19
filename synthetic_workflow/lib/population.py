@@ -3,6 +3,9 @@ import math
 import netCDF4 as nc
 import numpy as np
 
+from .temperature import load_deviations
+from synthetic_workflow import config
+
 
 seasonal_min_prop = 0.3
 rate = 0.5
@@ -70,7 +73,7 @@ def generate_population_series(annual_deviations):
     return pop
 
 
-def write_populations_as_netcdf(pop, filename="populations.nc"):
+def write_populations_as_netcdf(pop, filename=config.population_file):
     ds = nc.Dataset(filename, 'w', diskless=True, persist=True)
     dim_name = "Number"
     var_name = "Population"
@@ -81,14 +84,15 @@ def write_populations_as_netcdf(pop, filename="populations.nc"):
     ds.close()  # Persists dataset on close
 
 
-def load_deviations(filename="deviations.nc"):
+def load_populations(filename=config.population_file):
     ds = nc.Dataset(filename, 'r')
-    return ds["Degrees Deviation"][:]
+    yrange = len(ds["Population"])//12
+    return ds["Population"][:].reshape((yrange, 12))
 
 
 if __name__ == "__main__":
     devs = load_deviations()
-    breakpoint()
     #devs = np.random.uniform(0, 1, 36)
     pop = generate_population_series(devs)
     write_populations_as_netcdf(pop)
+    load = load_populations()

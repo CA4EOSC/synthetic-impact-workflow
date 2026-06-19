@@ -1,17 +1,26 @@
 import argparse
 import sys
 
+from synthetic_workflow import config
+
 from .lib.temperature import (
     make_annual_deviations,
+    load_deviations,
     write_deviations_as_netcdf
 )
 
-from .lib.solver import gauss_newton_fd
-from .lib.population import (
-    load_deviations,
-    generate_population_series,
-    write_populations_as_netcdf
+from .lib.solver import (
+    gauss_newton_fd,
+    write_capacity_fits,
+    load_capacity_fits
 )
+
+from .lib.population import (
+    generate_population_series,
+    write_populations_as_netcdf,
+    load_populations
+)
+
 from .lib.cmip import retrieve_datasets
 
 import matplotlib.pyplot as plt
@@ -98,6 +107,9 @@ def handle_args(args):
 
 
     if args.fit_capacities:
+        annual_deviations = load_deviations()
+        pop = load_populations()
+
         params = np.array([1.0, 0.5])
         rx, ry = [], []
 
@@ -108,15 +120,30 @@ def handle_args(args):
             rx.append(dev)
             ry.append(fit[0])
 
+
+        write_capacity_fits(rx, ry)
+        sys.exit(0)
+
     if args.make_regression:
+        rx, ry = load_capacity_fits()
         b, m = np.polynomial.polynomial.polyfit(rx, ry, 1)
+        with open(config.linear_reg_coeffs_file, 'w') as fp:
+            fp.write(f"{b},{m}")
+        sys.exit(0)
 
     if args.make_visualisation:
+        rx, ry = load_capacity_fits()
+        with open(config.linear_reg_coeffs_file, 'r') as fp:
+            coeffs = fp.read().split(',')
+
+        b = float(coeffs[0])
+        m = float(coeffs[1])
         plt.scatter(rx, ry)
         plt.axline((0, b), (1, b+m), color="red")
         plt.xlabel("Temperature Deviation °C")
         plt.ylabel("Annual Inferred Capacity")
         plt.show()
+        sys.exit(0)
 
 
 def run_workflow():
